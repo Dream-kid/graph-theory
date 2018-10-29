@@ -1,0 +1,107 @@
+//maxflow_edmondkarp+bpm
+#include<bits/stdc++.h>
+using namespace std;
+#define inf 100010
+typedef int ll;
+vector<pair<ll,ll> >v[1000];
+ll vis[250];
+ll dis[250];
+ll dp[250][2];
+ll res[250][250];
+ll ac;
+ll p[250];
+ll start=244;
+ll sink=245;
+ll f;
+void func(ll v,ll minedge)
+{
+    if(v==start)
+    {
+        f=minedge;
+        return;
+    }
+    else if(p[v]!=-1)
+    {
+        func(p[v],min(minedge,res[p[v]][v]));
+        res[p[v]][v]-=f;
+        res[v][p[v]]+=f;
+    }
+}
+void max_flow()
+{
+    ll mf=0;
+    while(1)
+    {
+        f=0;
+        for(ll i=0; i<=245; i++)
+            dis[i]=inf;
+        dis[start]=0;
+        queue<ll>q;
+        q.push(start);
+        for(ll i=0; i<=sink; i++)
+        {
+            p[i]=-1;
+        }
+        while(!q.empty())
+        {
+            ll u=q.front();
+            q.pop();
+           // cout<<u<<endl;
+            if(u==sink)
+                break;
+            for(ll i=0; i<=sink; i++)
+            {
+                if(res[u][i]>0&&dis[i]==inf)
+                {
+                 //  cout<<i<<" ";
+                    dis[i]=dis[u]+1;
+                    q.push(i);
+                    p[i]=u;
+                }
+
+            }
+           // cout<<endl;
+        }
+        func(sink,inf);
+        if(f==0)
+            break;
+        mf+=f;
+    }
+    cout<<mf<<endl;
+}
+int main()
+{
+    // freopen("out.txt","w",stdout);
+    ll ts;
+    scanf("%d",&ts);
+    for(ll t=1; t<=ts; t++)
+    {
+        ac++;
+        ll total;
+        scanf("%d",&total);
+        ll temp=1;
+        ll cost=1;
+        memset(res,0,sizeof res);
+        for(ll i=1; i<=total; i++)
+        {
+            ll l,r;
+            scanf("%d %d",&l,&r);
+            r+=122;
+          //  res[sink][l]=cost;
+            res[l][sink]=cost;
+            res[start][r]=cost;
+            //res[r][start]=cost;
+            res[r][l]=cost;
+            //res[l][r]=cost;
+           // cout<<start<<" "<<r<<" "<<l<<" "<<sink<<endl;
+            //v[sink].push_back(make_pair(l,cost));
+            //v[l].push_back(make_pair(sink,cost));
+            //  v[start].push_back(make_pair(r,cost));
+            //v[r].push_back(make_pair(start,cost));
+            //v[l].push_back(make_pair(r,cost));
+            //v[r].push_back(make_pair(l,cost));
+        }
+        max_flow();
+
+    }
+}
