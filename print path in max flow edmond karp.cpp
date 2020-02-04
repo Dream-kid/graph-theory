@@ -1,3 +1,4 @@
+//https://onlinejudge.org/external/2/259.pdf
 #include<bits/stdc++.h>
 using namespace std;
 #define inf 100010
