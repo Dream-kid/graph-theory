@@ -1,112 +1,134 @@
-//https://uva.onlinejudge.org/external/16/1658.pdf
+//https://lightoj.com/problem/gift-packing
 #include <bits/stdc++.h>
 using namespace std;
-typedef long long ll;
-#define inf 100000000000000
-struct node
+typedef int ll;
+#define inf 100000000
+const int maxm=6000;
+const int maxn=6000;
+struct Node
 {
-    ll u, v, cap, cost;
-    node(ll u1, ll v1, ll cap1, ll cost1)
-    {
-        u= u1, v = v1, cap = cap1, cost = cost1;
-    }
-};
-vector <node> e;
-vector <ll> adj[3010];
-ll dis[3010], par[3010];
-bool vis[3010];
-void add_node(ll u, ll v, ll cap, ll cost)
+    int to;
+    int capa;
+    int cost;
+    int next;
+} edge[maxm];
+int source,sink;
+int cnt;
+int head[maxn];
+bool vis[maxn];
+int num[maxn];
+int dep[maxn];
+int pre[maxn];
+int rec[maxn];
+int dis[maxn];
+void init()
 {
-    node e1 = node(u,v,cap,cost);
-    node e2 = node(v,u,0,-cost);
-    adj[u].push_back (e.size());
-    e.push_back(e1);
-    adj[v].push_back (e.size());
-    e.push_back (e2);
+    memset(head,-1,sizeof(head));
+    memset(pre,-1,sizeof(pre));
+    memset(rec,-1,sizeof(rec));
+    cnt=0;
+    return;
 }
-bool spfa(ll s, ll t, ll n)
+void add(int u,int v,int capa,int cost)
 {
-    queue <ll> q;
-    for (ll i = 0; i < 3001; i++)
+    edge[cnt].to=v;
+    edge[cnt].capa=capa;
+    edge[cnt].cost=cost;
+    edge[cnt].next=head[u];
+    head[u]=cnt++;
+    edge[cnt].to=u;
+    edge[cnt].capa=0;
+    edge[cnt].cost=-cost;
+    edge[cnt].next=head[v];
+    head[v]=cnt++;
+    return;
+}
+bool spfa()
+{
+    queue<int> que;
+    que.push(source);
+    for(ll i=0;i<6000;i++)dis[i]=inf;
+    //memset(dis,inf,sizeof(dis));
+    memset(vis,false,sizeof(vis));
+    dis[source]=0;
+    vis[source]=true;
+    while(!que.empty())
     {
-        par[i] = -1;
-        dis[i] = inf;
-        vis[i] = false;
-    }
-
-    q.push(s);
-    dis[s] = 0;
-    vis[s] = 1;
-    while(q.size())
-    {
-        ll u = q.front();
-        q.pop();
-        vis[u] = 1;
-        for(ll i=0; i<adj[u].size(); i++)
+        int node=que.front();
+        que.pop();
+        vis[node]=false;
+        for(int i=head[node]; ~i; i=edge[i].next)
         {
-            ll id = adj[u][i];
-            ll to = e[id].v;
-            ll temp = dis[u] + e[id].cost;
-            if(e[id].cap && dis[to] > temp)
+            int v=edge[i].to;
+            if(edge[i].capa>0&&dis[v]>dis[node]+edge[i].cost)
             {
-                dis[to] = temp;
-                q.push(to);
-                vis[to] = 1;
-                par[to] = id;
+                dis[v]=dis[node]+edge[i].cost;
+                rec[v]=i;
+                pre[v]=node;
+                if(!vis[v])
+                {
+                    vis[v]=true;
+                    que.push(v);
+                }
             }
         }
     }
-    return (dis[t] != inf);
+    return dis[sink]!=inf;
 }
-pair <ll,ll> min_cost_max_flow(ll s, ll t, ll n)
+int mcmf()
 {
-    ll mincost = 0, maxflow = 0;
-    while(spfa(s,t,n))
+    int maxflow=0;
+    int mincost=0;
+    while(spfa())
     {
-        ll flow = inf + 1;
-        ll id = par[t];
-        while(id != -1)
+        int node=sink;
+        int flow=inf;
+        while(node!=source)
         {
-            flow = min(flow, e[id].cap);
-            id = par[e[id].u];
+            flow=min(flow,edge[rec[node]].capa);
+            node=pre[node];
         }
-        id = par[t];
-        while(id != -1)
+        node=sink;
+        while(node!=source)
         {
-            e[id].cap -= flow;
-            e[id ^ 1].cap += flow;
-            id = par[e[id].u];
+            mincost+=flow*edge[rec[node]].cost;
+            edge[rec[node]].capa-=flow;
+            edge[rec[node]^1].capa+=flow;
+            node=pre[node];
         }
-        mincost += dis[t] * flow;
-        maxflow += flow;
     }
-    return make_pair (maxflow, mincost);
+    return -mincost;
 }
-
 int main()
 {
-    ll total,cnt;
-    while(cin>>total>>cnt)
+    ll ts;
+
+    cin>>ts;
+    for(ll t=1; t<=ts; t++)
     {
-        for(ll i=2; i<total; i++)
+        ll total;
+        init();
+        cin>>total;
+        for(ll i=1; i<=total; i++)
         {
-            add_node(i,i+total,1,0);
+            for(ll j=1; j<=total; j++)
+            {
+                ll val;
+                cin>>val;
+                add(i,j+total,1,-val);
+            }
         }
-        add_node(0,1,2,0);
-        add_node(1,1+total,2,0);
-        add_node(total,2*total,2,0);
-        add_node(2*total,2*total+1,2,0);
-        for(ll i=1; i<=cnt; i++)
+        ll src=5600;
+        ll des=5700;
+        source =src;
+        sink=des;
+        for(ll i=1; i<=total; i++)
         {
-            ll a,b,cost;
-            cin>>a>>b>>cost;
-            add_node(a+total,b,1,cost);
+            add(src,i,1,0);
+            add(i+total,des,1,0);
         }
-        cout<<min_cost_max_flow(0,2*total+1,2*total+2).second<<endl;
-        e.clear();
-        for (int i = 0; i < 3001; i++)
-        {
-            adj[i].clear();
-        }
+        cout<<"Case "<<t<<": "<<mcmf()<<endl;
+
     }
+
 }
